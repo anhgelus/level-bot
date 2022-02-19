@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'codes.anhgelus'
-version '0.1.1-dev.2'
+version '0.2.0-dev.2'
 
 repositories {
     mavenCentral()
@@ -13,7 +13,7 @@ repositories {
 
 mainClassName = 'codes.anhgelus.levelBot.LevelBot'
 
-def jdaVersion = '5.0.0-alpha.5'
+def jdaVersion = '4.4.0_350'
 
 sourceCompatibility = targetCompatibility = 16
 
