@@ -27,7 +27,7 @@ public class MessageSentListener extends ListenerAdapter {
             return;
         }
         int xp = ExperienceManager.experienceCalculator(content);
-        ExperienceManager.addExperience(event.getAuthor().getId(), event.getGuild().getId(), xp);
+        ExperienceManager.addExperience(event, xp);
     }
 
     private void forBotMessage(MessageReceivedEvent event, String prefix) {

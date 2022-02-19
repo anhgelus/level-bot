@@ -1,11 +1,15 @@
 package codes.anhgelus.levelBot.manager;
 
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 public class ExperienceManager {
 
-    public static void addExperience(String userId, String guildId, int experience) {
+    public static void addExperience(MessageReceivedEvent event, int experience) {
+        final String userId = event.getAuthor().getId();
+        final String guildId = event.getGuild().getId();
+
         final RedisManager redisManager = new RedisManager();
         final JedisPool pool = redisManager.getPool();
 
@@ -20,9 +24,13 @@ public class ExperienceManager {
                 exp = Integer.parseInt(expStr);
             }
 
-            exp += experience;
+            final int newXp = exp + experience;
 
-            jedis.set(key, String.valueOf(exp));
+            if (LevelManager.isNewLevel(exp, newXp)) {
+                LevelManager.newLevelEvent(event);
+            }
+
+            jedis.set(key, String.valueOf(newXp));
         }
         pool.close();
     }
@@ -57,7 +65,7 @@ public class ExperienceManager {
         // f(x)=((0.025 x^(1.25))/(50^(-0.5)))+1
         float result = (float) (0.025f * Math.pow(length, 1.25));
         result = (float) (result / Math.pow(chars, -0.5));
-        return result++;
+        return result + 1;
     }
 
 }

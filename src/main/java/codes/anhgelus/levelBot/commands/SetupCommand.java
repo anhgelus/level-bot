@@ -3,8 +3,7 @@ package codes.anhgelus.levelBot.commands;
 import codes.anhgelus.levelBot.manager.RedisManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -54,7 +53,7 @@ public class SetupCommand {
 
     private void gradeSetup(String type) {
         /*
-         * Args 2 = lvl
+         * Args 2 = lvl/rank
          * Args 3 = id role
          */
         final JedisPool pool = this.redisManager.getPool();
@@ -64,13 +63,18 @@ public class SetupCommand {
             lvl = Integer.parseInt(this.args[2]);
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            this.event.getChannel().sendMessage("This is not a valid id, sad!").queue();
+            this.event.getChannel().sendMessage("This is not a valid level, sad!").queue();
             return;
         }
 
-        int gradeId = 0;
+        long gradeId = 0;
         try {
-            gradeId = Integer.parseInt(this.args[3]);
+            gradeId = Long.parseLong(this.args[3]);
+            final Role role = this.event.getGuild().getRoleById(gradeId);
+            if (role == null) {
+                this.event.getChannel().sendMessage("This role doesn't exist, sad!").queue();
+                return;
+            }
         } catch (Exception e) {
             System.out.println(e.getMessage());
             this.event.getChannel().sendMessage("This is not a valid id, sad!").queue();
@@ -83,5 +87,7 @@ public class SetupCommand {
             jedis.set(key, String.valueOf(gradeId));
         }
         pool.close();
+
+        this.event.getChannel().sendMessage("Role " + this.event.getGuild().getRoleById(gradeId).getName() + " has been added to the level " + lvl).queue();
     }
 }
