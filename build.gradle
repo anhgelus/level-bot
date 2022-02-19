@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+    id'application'
+    id'com.github.johnrengelman.shadow' version '5.2.0'
+}
+
+group 'codes.anhgelus'
+version '0.0.1-dev.1'
+
+repositories {
+    mavenCentral()
+}
+
+mainClassName = 'codes.anhgelus.levelBot.LevelBot'
+
+def jdaVersion = '5.0.0-alpha.5'
+
+sourceCompatibility = targetCompatibility = 16
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://m2.dv8tion.net/releases"
+    }
+}
+
+dependencies {
+    implementation("net.dv8tion:JDA:$jdaVersion")
+    implementation("redis.clients:jedis:3.4.0")
+    implementation("org.yaml:snakeyaml:1.21")
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+compileJava.options.encoding = 'UTF-8'
+
+jar {
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+
+    archivesBaseName=rootProject.name
+    project.version = ""
+}
+
+test {
+    useJUnitPlatform()
+}
