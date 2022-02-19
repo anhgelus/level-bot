@@ -32,4 +32,8 @@ public class ConfigManager {
         return (String) this.getConfig().get("prefix");
     }
 
+    public String getAuthor() { return (String) this.getConfig().get("author"); }
+
+    public String getVersion() { return (String) this.getConfig().get("version"); }
+
 }
