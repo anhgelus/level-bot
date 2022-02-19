@@ -1,10 +1,7 @@
 package codes.anhgelus.levelBot.manager;
 
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-
-import java.util.Set;
 
 public class ExperienceManager {
 
