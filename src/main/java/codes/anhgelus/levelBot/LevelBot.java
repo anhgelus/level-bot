@@ -5,6 +5,8 @@ import codes.anhgelus.levelBot.manager.ConfigManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class LevelBot {
 
@@ -17,11 +19,11 @@ public class LevelBot {
         final String version = conf.getVersion();
         final String author = conf.getAuthor();
 
+        JDABuilder builder = JDABuilder.createDefault(token);
+        builder.enableIntents(GatewayIntent.GUILD_MEMBERS);
+        builder.addEventListeners(new MessageSentListener());
 
-
-        JDA api = JDABuilder.createDefault(token)
-                .addEventListeners(new MessageSentListener())
-                .build().awaitReady();
+        JDA api = builder.build().awaitReady();
 
         api.getPresence().setActivity(Activity.playing("Level Bot " + version + " by " + author));
 

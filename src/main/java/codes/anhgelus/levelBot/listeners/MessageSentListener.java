@@ -20,12 +20,22 @@ public class MessageSentListener extends ListenerAdapter {
         Message message = event.getMessage();
         String content = message.getContentRaw();
 
-        if (content.startsWith(prefix)) return;
-
-        MessageChannel channel = event.getChannel();
-
+        if (content.startsWith(prefix)) {
+            forBotMessage(event, prefix);
+            return;
+        }
         int xp = ExperienceManager.experienceCalculator(content);
+        ExperienceManager.addExperience(event.getAuthor().getId(), event.getGuild().getId(), xp);
+    }
 
-        channel.sendMessage("Hey " + event.getAuthor().getName() + ", l'xp de ton message est de " + xp).queue();
+    private void forBotMessage(MessageReceivedEvent event, String prefix) {
+        Message message = event.getMessage();
+        MessageChannel channel = event.getChannel();
+        String content = message.getContentRaw();
+
+        if (content.startsWith(prefix + "xp")) {
+            int xp = ExperienceManager.getExperience(event.getAuthor().getId(), event.getGuild().getId());
+            channel.sendMessage("You have " + xp + " xp points!").queue();
+        }
     }
 }
