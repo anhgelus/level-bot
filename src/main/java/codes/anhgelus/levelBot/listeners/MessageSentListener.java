@@ -1,6 +1,7 @@
 package codes.anhgelus.levelBot.listeners;
 
 import codes.anhgelus.levelBot.LevelBot;
+import codes.anhgelus.levelBot.commands.SetupCommand;
 import codes.anhgelus.levelBot.manager.ConfigManager;
 import codes.anhgelus.levelBot.manager.ExperienceManager;
 import codes.anhgelus.levelBot.manager.LevelManager;
@@ -44,6 +45,8 @@ public class MessageSentListener extends ListenerAdapter {
             final String[] args = content.split(" ");
             int xp = LevelManager.getLevelXpTotal(args[1]);
             channel.sendMessage("You need " + xp + " xp points to have access to the level " + args[1] + "!").queue();
+        } else if (content.startsWith(prefix + "setup")) {
+            final SetupCommand setupCommand = new SetupCommand(event);
         }
     }
 }
