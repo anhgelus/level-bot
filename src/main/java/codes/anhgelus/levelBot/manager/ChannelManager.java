@@ -1,15 +1,25 @@
 package codes.anhgelus.levelBot.manager;
 
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 public class ChannelManager {
 
-    public static boolean checkValidChannel(String channelId, String guildId) {
+    private final MessageReceivedEvent event;
+
+    private final String guildId;
+
+    public ChannelManager(MessageReceivedEvent event) {
+        this.event = event;
+        this.guildId = this.event.getGuild().getId();
+    }
+
+    public boolean checkValidChannel(String channelId) {
         final RedisManager redisManager = new RedisManager();
         final JedisPool pool = redisManager.getPool();
 
-        final String key = guildId + ":disabled-channel:" + channelId;
+        final String key = this.guildId + ":disabled-channel:" + channelId;
 
         try (Jedis jedis = pool.getResource()) {
             final String result = jedis.get(key);
@@ -23,11 +33,11 @@ public class ChannelManager {
         return false;
     }
 
-    public static void addDisabledChannel(String channelId, String guildId) {
+    public void addDisabledChannel(String channelId) {
         final RedisManager redisManager = new RedisManager();
         final JedisPool pool = redisManager.getPool();
 
-        final String key = guildId + ":disabled-channel:" + channelId;
+        final String key = this.guildId + ":disabled-channel:" + channelId;
 
         try (Jedis jedis = pool.getResource()) {
             jedis.set(key, "true");

@@ -8,8 +8,22 @@ import redis.clients.jedis.JedisPool;
 
 public class LevelManager {
 
-    public static int getLevel(String userId, String guildId) {
-        final int xp = ExperienceManager.getExperience(userId, guildId);
+    private final String userId;
+    private final String guildId;
+
+    private final MessageReceivedEvent event;
+
+    private final ExperienceManager experienceManager;
+
+    public LevelManager(MessageReceivedEvent event) {
+        this.event = event;
+        this.userId = event.getAuthor().getId();
+        this.guildId = event.getGuild().getId();
+        this.experienceManager = new ExperienceManager(event);
+    }
+
+    public int getLevel() {
+        final int xp = this.experienceManager.getExperience();
         return getLevelWithXp(xp);
     }
 
@@ -54,12 +68,10 @@ public class LevelManager {
         return Math.toIntExact(lvl);
     }
 
-    public static void newLevelEvent(MessageReceivedEvent event) {
-        final String userId = event.getAuthor().getId();
-        final String guildId = event.getGuild().getId();
-        final MessageChannel channel = event.getChannel();
+    public void newLevelEvent() {
+        final MessageChannel channel = this.event.getChannel();
 
-        final int level = getLevel(userId, guildId) + 1;
+        final int level = getLevel() + 1;
 
         final RedisManager redisManager = new RedisManager();
         final JedisPool pool = redisManager.getPool();

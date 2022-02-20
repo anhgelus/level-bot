@@ -2,6 +2,7 @@ package codes.anhgelus.levelBot.listeners;
 
 import codes.anhgelus.levelBot.LevelBot;
 import codes.anhgelus.levelBot.commands.SetupCommand;
+import codes.anhgelus.levelBot.manager.ChannelManager;
 import codes.anhgelus.levelBot.manager.ConfigManager;
 import codes.anhgelus.levelBot.manager.ExperienceManager;
 import codes.anhgelus.levelBot.manager.LevelManager;
@@ -17,29 +18,38 @@ public class MessageSentListener extends ListenerAdapter {
         final ConfigManager conf = new ConfigManager(LevelBot.CONF_FILE_NAME);
         final String prefix = conf.getPrefix();
 
+        final ExperienceManager experienceManager = new ExperienceManager(event);
+        final ChannelManager channelManager = new ChannelManager(event);
+
         if (event.getAuthor().isBot()) return;
 
-        Message message = event.getMessage();
-        String content = message.getContentRaw();
+        final Message message = event.getMessage();
+        final String content = message.getContentRaw();
 
         if (content.startsWith(prefix)) {
             forBotMessage(event, prefix);
             return;
         }
+
+        if (!channelManager.checkValidChannel(event.getChannel().getId())) return;
+
         int xp = ExperienceManager.experienceCalculator(content);
-        ExperienceManager.addExperience(event, xp);
+        experienceManager.addExperience(xp);
     }
 
     private void forBotMessage(MessageReceivedEvent event, String prefix) {
-        Message message = event.getMessage();
-        MessageChannel channel = event.getChannel();
-        String content = message.getContentRaw();
+        final Message message = event.getMessage();
+        final MessageChannel channel = event.getChannel();
+        final String content = message.getContentRaw();
+
+        final LevelManager levelManager = new LevelManager(event);
+        final ExperienceManager experienceManager = new ExperienceManager(event);
 
         if (content.equals(prefix + "xp")) {
-            int xp = ExperienceManager.getExperience(event.getAuthor().getId(), event.getGuild().getId());
+            int xp = experienceManager.getExperience();
             channel.sendMessage("You have " + xp + " xp points!").queue();
         } else if (content.equals(prefix + "level")) {
-            int lvl = LevelManager.getLevel(event.getAuthor().getId(), event.getGuild().getId());
+            int lvl = levelManager.getLevel();
             channel.sendMessage("Your level is " + lvl + "!").queue();
         } else if (content.startsWith(prefix + "xpto") && (content.split(" ").length == 2)) {
             final String[] args = content.split(" ");

@@ -6,12 +6,25 @@ import redis.clients.jedis.JedisPool;
 
 public class ExperienceManager {
 
-    public static void addExperience(MessageReceivedEvent event, int experience) {
-        final String userId = event.getAuthor().getId();
-        final String guildId = event.getGuild().getId();
+    private final String userId;
+    private final String guildId;
+
+    private final MessageReceivedEvent event;
+
+    public ExperienceManager(MessageReceivedEvent event) {
+        this.event = event;
+        this.userId = event.getAuthor().getId();
+        this.guildId = event.getGuild().getId();
+    }
+
+    public void addExperience(int experience) {
+        final String userId = this.event.getAuthor().getId();
+        final String guildId = this.event.getGuild().getId();
 
         final RedisManager redisManager = new RedisManager();
         final JedisPool pool = redisManager.getPool();
+
+        final LevelManager levelManager = new LevelManager(this.event);
 
         final String key = guildId + ":" + userId + ":xp";
 
@@ -27,7 +40,7 @@ public class ExperienceManager {
             final int newXp = exp + experience;
 
             if (LevelManager.isNewLevel(exp, newXp)) {
-                LevelManager.newLevelEvent(event);
+                levelManager.newLevelEvent();
             }
 
             jedis.set(key, String.valueOf(newXp));
@@ -35,11 +48,11 @@ public class ExperienceManager {
         pool.close();
     }
 
-    public static int getExperience(String userId, String guildId) {
+    public int getExperience() {
         final RedisManager redisManager = new RedisManager();
         final JedisPool pool = redisManager.getPool();
 
-        final String key = guildId + ":" + userId + ":xp";
+        final String key = this.guildId + ":" + this.userId + ":xp";
         int exp = 0;
 
         try (Jedis jedis = pool.getResource()) {

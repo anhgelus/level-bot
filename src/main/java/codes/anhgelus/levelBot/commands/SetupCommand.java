@@ -15,18 +15,23 @@ import java.awt.*;
 public class SetupCommand {
 
     private final MessageReceivedEvent event;
+
     private final String[] args;
+
+    private final MessageChannel channel;
+
     private final RedisManager redisManager;
+    private final ChannelManager channelManager;
 
     public SetupCommand(MessageReceivedEvent event) {
         this.event = event;
         this.args = event.getMessage().getContentRaw().split(" ");
+        this.channel = event.getChannel();
         this.redisManager = new RedisManager();
-
-        final MessageChannel channel = event.getChannel();
+        this.channelManager = new ChannelManager(event);
 
         if (!event.getGuild().getMemberById(event.getAuthor().getId()).hasPermission(Permission.MANAGE_PERMISSIONS)) {
-            this.event.getChannel().sendMessage("You don't have the permission to do this, sad!").queue();
+            this.channel.sendMessage("You don't have the permission to do this, sad!").queue();
             return;
         }
 
@@ -49,12 +54,12 @@ public class SetupCommand {
             } else if (this.args[1].equals("disable-channel") && (this.args.length == 3)) {
                 disableChannel();
             } else {
-                channel.sendMessageEmbeds(help.build()).queue();
+                this.channel.sendMessageEmbeds(help.build()).queue();
             }
             return;
         }
 
-        channel.sendMessageEmbeds(help.build()).queue();
+        this.channel.sendMessageEmbeds(help.build()).queue();
     }
 
     private void gradeSetup(String type) {
@@ -69,7 +74,7 @@ public class SetupCommand {
             lvl = Integer.parseInt(this.args[2]);
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            this.event.getChannel().sendMessage("This is not a valid level, sad!").queue();
+            this.channel.sendMessage("This is not a valid level, sad!").queue();
             return;
         }
 
@@ -78,12 +83,12 @@ public class SetupCommand {
             gradeId = Long.parseLong(this.args[3]);
             final Role role = this.event.getGuild().getRoleById(gradeId);
             if (role == null) {
-                this.event.getChannel().sendMessage("This role doesn't exist, sad!").queue();
+                this.channel.sendMessage("This role doesn't exist, sad!").queue();
                 return;
             }
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            this.event.getChannel().sendMessage("This is not a valid id, sad!").queue();
+            this.channel.sendMessage("This is not a valid id, sad!").queue();
             return;
         }
 
@@ -94,15 +99,16 @@ public class SetupCommand {
         }
         pool.close();
 
-        this.event.getChannel().sendMessage("Role " + this.event.getGuild().getRoleById(gradeId).getName() + " has been added to the level " + lvl).queue();
+        this.channel.sendMessage("Role " + this.event.getGuild().getRoleById(gradeId).getName() + " has been added to the level " + lvl).queue();
     }
 
     private void disableChannel() {
         try {
             this.event.getGuild().getGuildChannelById(this.args[2]);
-            ChannelManager.addDisabledChannel(this.args[2], this.event.getGuild().getId());
+            this.channelManager.addDisabledChannel(this.args[2]);
+            this.channel.sendMessage("The channel <#" + this.args[2] + "> has been disabled!").queue();
         } catch (Exception e) {
-            this.event.getChannel().sendMessage(e.getMessage()).queue();
+            this.channel.sendMessage(e.getMessage()).queue();
         }
     }
 }
