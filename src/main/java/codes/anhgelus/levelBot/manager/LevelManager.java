@@ -3,8 +3,6 @@ package codes.anhgelus.levelBot.manager;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.requests.ErrorResponse;
-import net.dv8tion.jda.api.requests.restaction.AuditableRestAction;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 

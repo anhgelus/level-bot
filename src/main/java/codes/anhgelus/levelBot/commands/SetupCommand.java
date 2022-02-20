@@ -1,8 +1,10 @@
 package codes.anhgelus.levelBot.commands;
 
+import codes.anhgelus.levelBot.manager.ChannelManager;
 import codes.anhgelus.levelBot.manager.RedisManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import redis.clients.jedis.Jedis;
@@ -21,6 +23,8 @@ public class SetupCommand {
         this.args = event.getMessage().getContentRaw().split(" ");
         this.redisManager = new RedisManager();
 
+        final MessageChannel channel = event.getChannel();
+
         if (!event.getGuild().getMemberById(event.getAuthor().getId()).hasPermission(Permission.MANAGE_PERMISSIONS)) {
             this.event.getChannel().sendMessage("You don't have the permission to do this, sad!").queue();
             return;
@@ -29,8 +33,9 @@ public class SetupCommand {
         final EmbedBuilder help = new EmbedBuilder()
                 .setTitle("Setup Command")
                 .setColor(Color.RED)
-                .setDescription("Help for the setup command:\n\n> `grade-level {level} {grade id}` - setup a grade for the player who reached this level" +
-                        "\n> `grade-leaderboard {place in the leaderboard} {grade id}` - setup a grade for the player who reached this place in the leaderboard");
+                .setDescription("Help for the setup command:\n> `grade-level {level} {grade id}` - setup a grade for the player who reached this level" +
+                        "\n> `grade-leaderboard {place in the leaderboard} {grade id}` - setup a grade for the player who reached this place in the leaderboard" +
+                        "\n> `disable-channel {channel id}` - disable a channel");
 
         /*
         * Args 0 = !setup
@@ -41,14 +46,15 @@ public class SetupCommand {
                 gradeSetup("grade-level");
             } else if (this.args[1].equals("grade-leaderboard") && (this.args.length == 4)) {
                 gradeSetup("grade-leaderboard");
+            } else if (this.args[1].equals("disable-channel") && (this.args.length == 3)) {
+                disableChannel();
             } else {
-                event.getChannel().sendMessageEmbeds(help.build()).queue();
+                channel.sendMessageEmbeds(help.build()).queue();
             }
-
             return;
         }
 
-        event.getChannel().sendMessageEmbeds(help.build()).queue();
+        channel.sendMessageEmbeds(help.build()).queue();
     }
 
     private void gradeSetup(String type) {
@@ -89,5 +95,14 @@ public class SetupCommand {
         pool.close();
 
         this.event.getChannel().sendMessage("Role " + this.event.getGuild().getRoleById(gradeId).getName() + " has been added to the level " + lvl).queue();
+    }
+
+    private void disableChannel() {
+        try {
+            this.event.getGuild().getGuildChannelById(this.args[2]);
+            ChannelManager.addDisabledChannel(this.args[2], this.event.getGuild().getId());
+        } catch (Exception e) {
+            this.event.getChannel().sendMessage(e.getMessage()).queue();
+        }
     }
 }
