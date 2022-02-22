@@ -4,12 +4,18 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 public class ExperienceManager {
 
     private final String userId;
     private final String guildId;
 
     private final MessageReceivedEvent event;
+
+    public final static String USER_XP_HASH = "xp";
 
     public ExperienceManager(MessageReceivedEvent event) {
         this.event = event;
@@ -25,16 +31,15 @@ public class ExperienceManager {
         final JedisPool pool = redisManager.getPool();
 
         final LevelManager levelManager = new LevelManager(this.event);
-
-        final String key = guildId + ":" + userId + ":xp";
+        final LeaderboardManager leaderboardManager = new LeaderboardManager(guildId, userId);
 
         try (Jedis jedis = pool.getResource()) {
-            final String expStr = jedis.get(key);
+            final String sampleUserIdStr = jedis.get(RedisManager.createUsersIdKey(guildId));
 
             int exp = 0;
 
-            if (expStr != null) {
-                exp = Integer.parseInt(expStr);
+            if (!Objects.equals(sampleUserIdStr, userId)) {
+                jedis.set(RedisManager.createUsersIdKey(guildId), RedisManager.createUserIdValue(userId));
             }
 
             final int newXp = exp + experience;

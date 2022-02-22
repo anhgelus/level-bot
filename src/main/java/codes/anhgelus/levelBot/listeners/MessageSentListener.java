@@ -2,14 +2,14 @@ package codes.anhgelus.levelBot.listeners;
 
 import codes.anhgelus.levelBot.LevelBot;
 import codes.anhgelus.levelBot.commands.SetupCommand;
-import codes.anhgelus.levelBot.manager.ChannelManager;
-import codes.anhgelus.levelBot.manager.ConfigManager;
-import codes.anhgelus.levelBot.manager.ExperienceManager;
-import codes.anhgelus.levelBot.manager.LevelManager;
+import codes.anhgelus.levelBot.manager.*;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+
+import java.awt.*;
 
 public class MessageSentListener extends ListenerAdapter {
 
