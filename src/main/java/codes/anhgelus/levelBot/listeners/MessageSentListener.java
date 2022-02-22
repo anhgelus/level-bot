@@ -57,6 +57,17 @@ public class MessageSentListener extends ListenerAdapter {
             channel.sendMessage("You need " + xp + " xp points to have access to the level " + args[1] + "!").queue();
         } else if (content.startsWith(prefix + "setup")) {
             final SetupCommand setupCommand = new SetupCommand(event);
+        } else if (content.startsWith(prefix + "leaderboard")) {
+            channel.sendMessage("The leaderboard is currently in development. Check the github for more information").queue();
+        } else {
+            final EmbedBuilder eb = new EmbedBuilder()
+                    .setTitle("Help")
+                    .setDescription("Commands:\n" + "> `xp` - see your xp\n" + "> `level` - see your level\n" +
+                            "> `xpto {level}` - see the total xp needed to reach that level\n" +
+                            "> `leaderboard` - see the leaderboard\n" +
+                            "> `setup` - setup the bot (use it to see its own help page)")
+                    .setColor(Color.ORANGE);
+            channel.sendMessageEmbeds(eb.build()).queue();
         }
     }
 }
