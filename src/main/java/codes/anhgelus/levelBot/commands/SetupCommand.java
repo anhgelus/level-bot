@@ -23,6 +23,8 @@ public class SetupCommand {
     private final RedisManager redisManager;
     private final ChannelManager channelManager;
 
+    public static final String SEPARATOR = ",";
+
     public SetupCommand(MessageReceivedEvent event) {
         this.event = event;
         this.args = event.getMessage().getContentRaw().split(" ");
@@ -48,11 +50,13 @@ public class SetupCommand {
          */
         if (this.args.length > 1) {
             if (this.args[1].equals("grade-level") && (this.args.length == 4)) {
-                gradeSetup("grade-level");
+                gradeSetup(RedisManager.GRADE_LEVEL_HASH);
             } else if (this.args[1].equals("grade-leaderboard") && (this.args.length == 4)) {
-                gradeSetup("grade-leaderboard");
+                gradeSetup(RedisManager.GRADE_LEADERBOARD_HASH);
             } else if (this.args[1].equals("disable-channel") && (this.args.length == 3)) {
                 disableChannel();
+            } else if (this.args[1].equals("default-channel") && (this.args.length == 3)) {
+                defaultChannel();
             } else {
                 this.channel.sendMessageEmbeds(help.build()).queue();
             }
@@ -92,10 +96,17 @@ public class SetupCommand {
             return;
         }
 
-        final String key = this.event.getGuild().getId() + ":" + type + ":" + lvl;
+        final String key = RedisManager.setupKey(this.event.getGuild().getId());
 
         try (Jedis jedis = pool.getResource()) {
-            jedis.set(key, String.valueOf(gradeId));
+            switch (type) {
+                case "grade-level": {
+                    jedis.hset(key, RedisManager.setupValue(lvl + RedisManager.SPLIT + gradeId + SEPARATOR, "", "", ""));
+                }
+                case "grade-leaderboard": {
+                    jedis.hset(key, RedisManager.setupValue("", lvl + RedisManager.SPLIT + gradeId  + SEPARATOR, "", ""));
+                }
+            }
         }
         pool.close();
 

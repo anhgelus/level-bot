@@ -4,6 +4,7 @@ import codes.anhgelus.levelBot.LevelBot;
 import codes.anhgelus.levelBot.commands.SetupCommand;
 import codes.anhgelus.levelBot.manager.*;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -13,15 +14,20 @@ import java.awt.*;
 
 public class MessageSentListener extends ListenerAdapter {
 
+    private final JDA api;
+
+    public MessageSentListener(JDA api) {
+        this.api = api;
+    }
+
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
+        if (event.getAuthor().isBot()) return;
+
         final ConfigManager conf = new ConfigManager(LevelBot.CONF_FILE_NAME);
         final String prefix = conf.getPrefix();
 
-        final ExperienceManager experienceManager = new ExperienceManager(event);
         final ChannelManager channelManager = new ChannelManager(event);
-
-        if (event.getAuthor().isBot()) return;
 
         final Message message = event.getMessage();
         final String content = message.getContentRaw();
@@ -33,8 +39,10 @@ public class MessageSentListener extends ListenerAdapter {
 
         if (!channelManager.checkValidChannel(event.getChannel().getId())) return;
 
+        final ExperienceManager experienceManager = new ExperienceManager(event.getGuild().getId(), event.getAuthor().getId());
+
         int xp = ExperienceManager.experienceCalculator(content);
-        experienceManager.addExperience(xp);
+        experienceManager.addExperience(xp, event, this.api);
     }
 
     private void forBotMessage(MessageReceivedEvent event, String prefix) {
@@ -42,8 +50,8 @@ public class MessageSentListener extends ListenerAdapter {
         final MessageChannel channel = event.getChannel();
         final String content = message.getContentRaw();
 
-        final LevelManager levelManager = new LevelManager(event);
-        final ExperienceManager experienceManager = new ExperienceManager(event);
+        final LevelManager levelManager = new LevelManager(event.getGuild().getId(), event.getAuthor().getId());
+        final ExperienceManager experienceManager = new ExperienceManager(event.getGuild().getId(), event.getAuthor().getId());
 
         if (content.equals(prefix + "xp")) {
             int xp = experienceManager.getExperience();

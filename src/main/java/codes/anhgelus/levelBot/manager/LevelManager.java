@@ -1,8 +1,10 @@
 package codes.anhgelus.levelBot.manager;
 
+import codes.anhgelus.levelBot.commands.SetupCommand;
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -11,20 +13,38 @@ public class LevelManager {
     private final String userId;
     private final String guildId;
 
-    private final MessageReceivedEvent event;
-
     private final ExperienceManager experienceManager;
 
-    public LevelManager(MessageReceivedEvent event) {
-        this.event = event;
-        this.userId = event.getAuthor().getId();
-        this.guildId = event.getGuild().getId();
-        this.experienceManager = new ExperienceManager(event);
+    public LevelManager(String guildId, String userId) {
+        this.userId = userId;
+        this.guildId = guildId;
+        this.experienceManager = new ExperienceManager(guildId, userId);
     }
 
     public int getLevel() {
-        final int xp = this.experienceManager.getExperience();
-        return getLevelWithXp(xp);
+        final RedisManager redisManager = new RedisManager();
+        final JedisPool pool = redisManager.getPool();
+
+        final String key = RedisManager.createUserKey(this.guildId, this.userId);
+
+        int level = 0;
+
+        try (Jedis jedis = pool.getResource()) {
+            final String oldLvl = jedis.hget(key, RedisManager.LEVEL_HASH);
+            if (oldLvl != null) {
+                try {
+                    level = Integer.parseInt(oldLvl);
+                } catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
+
+        if (level == 0) {
+            level = getLevelWithXp(experienceManager.getExperience());
+        }
+        pool.close();
+        return level;
     }
 
     public static int getLevelXpTotal(int lvl) {
@@ -68,23 +88,25 @@ public class LevelManager {
         return Math.toIntExact(lvl);
     }
 
-    public void newLevelEvent() {
-        final MessageChannel channel = this.event.getChannel();
-
-        final int level = getLevel() + 1;
+    public void newLevelEvent(int xp, MessageChannel channel, JDA api) {
+        final int level = getLevelWithXp(xp);
 
         final RedisManager redisManager = new RedisManager();
         final JedisPool pool = redisManager.getPool();
 
-        final String key1 = guildId + ":grade-level:" + level;
+        final String key1 = RedisManager.setupKey(this.guildId);
+        final String key2 = RedisManager.createUserKey(this.guildId, this.userId);
 
         try (Jedis jedis = pool.getResource()) {
-            final String grade = jedis.get(key1);
+            final SetupManager setupManager = new SetupManager(jedis);
 
-            if (grade != null) {
-                final Role role = event.getGuild().getRoleById(Long.parseLong(grade));
+            if (setupManager.isGradeLevel(key1, level)) {
+                final Guild guild = api.getGuildById(this.guildId);
+                final Role role = guild.getRoleById(Long.parseLong(setupManager.getLevelOfGrade(key1, level)));
+
                 try {
-                    event.getGuild().addRoleToMember(userId, role).queue();
+                    guild.addRoleToMember(this.userId, role).queue();
+                    jedis.hset(key2, RedisManager.createUserValue("", String.valueOf(level), "", ""));
                 } catch (Exception e) {
                     channel.sendMessage(e.getMessage()).queue();
                     return;

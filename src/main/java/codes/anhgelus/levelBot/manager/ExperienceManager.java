@@ -1,11 +1,12 @@
 package codes.anhgelus.levelBot.manager;
 
+import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.MessageChannel;
+import net.dv8tion.jda.api.events.Event;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 
 public class ExperienceManager {
@@ -13,25 +14,21 @@ public class ExperienceManager {
     private final String userId;
     private final String guildId;
 
-    private final MessageReceivedEvent event;
-
     public final static String USER_XP_HASH = "xp";
 
-    public ExperienceManager(MessageReceivedEvent event) {
-        this.event = event;
-        this.userId = event.getAuthor().getId();
-        this.guildId = event.getGuild().getId();
+    public ExperienceManager(String guildId, String userId) {
+        this.userId = userId;
+        this.guildId = guildId;
     }
 
-    public void addExperience(int experience) {
-        final String userId = this.event.getAuthor().getId();
-        final String guildId = this.event.getGuild().getId();
+    public void addExperience(int experience, Event event, JDA api) {
+        final String userId = this.userId;
+        final String guildId = this.guildId;
 
         final RedisManager redisManager = new RedisManager();
         final JedisPool pool = redisManager.getPool();
 
-        final LevelManager levelManager = new LevelManager(this.event);
-        final LeaderboardManager leaderboardManager = new LeaderboardManager(guildId, userId);
+        final LevelManager levelManager = new LevelManager(guildId, userId);
 
         try (Jedis jedis = pool.getResource()) {
             final String sampleUserIdStr = jedis.get(RedisManager.createUsersIdKey(guildId));
@@ -42,13 +39,32 @@ public class ExperienceManager {
                 jedis.set(RedisManager.createUsersIdKey(guildId), RedisManager.createUserIdValue(userId));
             }
 
+            final String oldXp = jedis.hget(RedisManager.createUserKey(guildId, userId), RedisManager.XP_HASH);
+
+            if (oldXp != null) exp = Integer.parseInt(oldXp);
+
             final int newXp = exp + experience;
 
-            if (LevelManager.isNewLevel(exp, newXp)) {
-                levelManager.newLevelEvent();
+            MessageChannel channel;
+
+            if (event instanceof MessageReceivedEvent) {
+                channel = ((MessageReceivedEvent) event).getChannel();
+            } else {
+                final String channelId = jedis.get(RedisManager.setupKey(guildId));
+                if (channelId == null) {
+                    api.getGuildById(guildId).getOwner().getUser().openPrivateChannel().queue((chan) -> {
+                        chan.sendMessage("You don't set a default channel! Please setup it.\nTo setup it, use !setup default-channel {channel id}").queue();
+                    });
+                    return;
+                }
+                channel = api.getTextChannelById(channelId);
             }
 
-            jedis.set(key, String.valueOf(newXp));
+            if (LevelManager.isNewLevel(exp, newXp)) {
+                levelManager.newLevelEvent(newXp, channel, api);
+            }
+
+            jedis.hset(RedisManager.createUserKey(guildId, userId), RedisManager.createUserValue(String.valueOf(newXp), "", "", ""));
         }
         pool.close();
     }
@@ -57,11 +73,11 @@ public class ExperienceManager {
         final RedisManager redisManager = new RedisManager();
         final JedisPool pool = redisManager.getPool();
 
-        final String key = this.guildId + ":" + this.userId + ":xp";
+        final String key = RedisManager.createUserKey(this.guildId, this.userId);
         int exp = 0;
 
         try (Jedis jedis = pool.getResource()) {
-            final String expStr = jedis.get(key);
+            final String expStr = jedis.hget(key, RedisManager.XP_HASH);
 
             if (expStr != null) {
                 exp = Integer.parseInt(expStr);

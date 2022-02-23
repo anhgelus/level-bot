@@ -1,5 +1,6 @@
 package codes.anhgelus.levelBot.manager;
 
+import codes.anhgelus.levelBot.commands.SetupCommand;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -19,10 +20,10 @@ public class ChannelManager {
         final RedisManager redisManager = new RedisManager();
         final JedisPool pool = redisManager.getPool();
 
-        final String key = this.guildId + ":disabled-channel:" + channelId;
+        final String key = RedisManager.setupKey(this.guildId);
 
         try (Jedis jedis = pool.getResource()) {
-            final String result = jedis.get(key);
+            final String result = jedis.hget(key, RedisManager.DISABLED_CHANNEL_HASH);
 
             if (result == null) {
                 pool.close();
@@ -37,10 +38,22 @@ public class ChannelManager {
         final RedisManager redisManager = new RedisManager();
         final JedisPool pool = redisManager.getPool();
 
-        final String key = this.guildId + ":disabled-channel:" + channelId;
+        final String key = RedisManager.setupKey(this.guildId);
 
         try (Jedis jedis = pool.getResource()) {
-            jedis.set(key, "true");
+            jedis.hset(key, RedisManager.setupValue("", "", channelId + SetupCommand.SEPARATOR, ""));
+        }
+        pool.close();
+    }
+
+    public void setDefaultChannel(String channelId) {
+        final RedisManager redisManager = new RedisManager();
+        final JedisPool pool = redisManager.getPool();
+
+        final String key = RedisManager.setupKey(this.guildId);
+
+        try (Jedis jedis = pool.getResource()) {
+            jedis.hset(key, RedisManager.setupValue("", "", "", channelId));
         }
         pool.close();
     }
