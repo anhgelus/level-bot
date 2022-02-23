@@ -50,7 +50,7 @@ public class ExperienceManager {
             if (event instanceof MessageReceivedEvent) {
                 channel = ((MessageReceivedEvent) event).getChannel();
             } else {
-                final String channelId = jedis.get(RedisManager.setupKey(guildId));
+                final String channelId = jedis.hget(RedisManager.setupKey(guildId), RedisManager.DEFAULT_CHANNEL_HASH);
                 if (channelId == null) {
                     api.getGuildById(guildId).getOwner().getUser().openPrivateChannel().queue((chan) -> {
                         chan.sendMessage("You don't set a default channel! Please setup it.\nTo setup it, use !setup default-channel {channel id}").queue();

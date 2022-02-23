@@ -63,11 +63,15 @@ public class LevelManager {
     }
 
     public static int getLevelXpTotal(String lvl) {
-        int realLvl = 0;
+        int realLvl;
         try {
             realLvl = Integer.parseInt(lvl);
         } catch (Exception e) {
             System.out.println(e.getMessage());
+            return -2;
+        }
+        if (realLvl < 0) {
+            return -2;
         }
         long xp = Math.round(Math.pow((realLvl / 0.1), 0.5*4));
         if (xp > Integer.MAX_VALUE) {

@@ -4,8 +4,10 @@ import codes.anhgelus.levelBot.manager.ChannelManager;
 import codes.anhgelus.levelBot.manager.RedisManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -32,7 +34,13 @@ public class SetupCommand {
         this.redisManager = new RedisManager();
         this.channelManager = new ChannelManager(event);
 
-        if (!event.getGuild().getMemberById(event.getAuthor().getId()).hasPermission(Permission.MANAGE_PERMISSIONS)) {
+        try {
+            if (event.getGuild().getMemberById(event.getAuthor().getId()).getPermissions().contains(Permission.MANAGE_SERVER)) {
+                this.channel.sendMessage("You don't have the permission to do this, sad!").queue();
+                return;
+            }
+        } catch (Exception e) {
+            System.out.println("Common Setup Error: " + e.getMessage());
             this.channel.sendMessage("You don't have the permission to do this, sad!").queue();
             return;
         }
@@ -42,7 +50,8 @@ public class SetupCommand {
                 .setColor(Color.RED)
                 .setDescription("Help for the setup command:\n> `grade-level {level} {grade id}` - setup a grade for the player who reached this level" +
                         "\n> `grade-leaderboard {place in the leaderboard} {grade id}` - setup a grade for the player who reached this place in the leaderboard" +
-                        "\n> `disable-channel {channel id}` - disable a channel");
+                        "\n> `disable-channel {channel id}` - disable a channel" +
+                        "\n> `default-channel {channel id}` - set the default channel`");
 
         /*
         * Args 0 = !setup
@@ -118,6 +127,16 @@ public class SetupCommand {
             this.event.getGuild().getGuildChannelById(this.args[2]);
             this.channelManager.addDisabledChannel(this.args[2]);
             this.channel.sendMessage("The channel <#" + this.args[2] + "> has been disabled!").queue();
+        } catch (Exception e) {
+            this.channel.sendMessage(e.getMessage()).queue();
+        }
+    }
+
+    private void defaultChannel() {
+        try {
+            this.event.getGuild().getGuildChannelById(this.args[2]);
+            this.channelManager.setDefaultChannel(this.args[2]);
+            this.channel.sendMessage("The channel <#" + this.args[2] + "> has been selected!").queue();
         } catch (Exception e) {
             this.channel.sendMessage(e.getMessage()).queue();
         }
