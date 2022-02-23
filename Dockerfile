@@ -10,8 +10,6 @@ FROM openjdk:16-alpine
 
 WORKDIR /usr/src/myapp
 
-COPY --from=gradle /home/gradle/project /usr/src/myapp
-
-RUN mv build/libs/Level-Bot-all.jar level-bot.jar
+COPY --from=gradle /home/gradle/project/build/libs/Level-Bot-all.jar /usr/src/myapp/level-bot.jar
 
 CMD java -jar level-bot.jar
