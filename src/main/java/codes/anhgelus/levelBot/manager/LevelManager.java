@@ -106,7 +106,7 @@ public class LevelManager {
 
             if (setupManager.isGradeLevel(key1, level)) {
                 final Guild guild = api.getGuildById(this.guildId);
-                final Role role = guild.getRoleById(Long.parseLong(setupManager.getLevelOfGrade(key1, level)));
+                final Role role = guild.getRoleById(Long.parseLong(setupManager.getGradeLevel(key1, level)));
 
                 try {
                     guild.addRoleToMember(this.userId, role).queue();

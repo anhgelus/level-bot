@@ -34,18 +34,6 @@ public class ChannelManager {
         return false;
     }
 
-    public void addDisabledChannel(String channelId) {
-        final RedisManager redisManager = new RedisManager();
-        final JedisPool pool = redisManager.getPool();
-
-        final String key = RedisManager.setupKey(this.guildId);
-
-        try (Jedis jedis = pool.getResource()) {
-            jedis.hset(key, RedisManager.setupValue("", "", channelId + SetupCommand.SEPARATOR, ""));
-        }
-        pool.close();
-    }
-
     public void setDefaultChannel(String channelId) {
         final RedisManager redisManager = new RedisManager();
         final JedisPool pool = redisManager.getPool();

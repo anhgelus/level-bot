@@ -1,5 +1,5 @@
 token: "token_here"
 database-ip: "redis"
-prefix: "!"
+prefix: "dev."
 author: "Anhgelus Morhtuuzh"
 version: "0.4.2"
