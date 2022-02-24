@@ -26,8 +26,11 @@ public class ChannelManager {
 
         try (Jedis jedis = pool.getResource()) {
             final String result = jedis.hget(key, RedisManager.DISABLED_CHANNEL_HASH);
-            System.out.println(channelId);
-            System.out.println(Arrays.stream(result.split(SetupManager.SEPARATOR)).toList());
+
+            if (result == null) {
+                pool.close();
+                return true;
+            }
 
             if (Arrays.stream(result.split(SetupManager.SEPARATOR)).toList().contains(channelId)) {
                 System.out.println("here!");
