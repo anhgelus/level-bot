@@ -1,6 +1,6 @@
 token: "token_here"
 database-ip: "redis"
-prefix: "dev."
+prefix: "!"
 author: "Anhgelus Morhtuuzh"
 version: "0.5.1"
 status: "Level-Bot {version} by {author}"

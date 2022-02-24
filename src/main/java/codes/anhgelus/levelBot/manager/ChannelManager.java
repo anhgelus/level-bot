@@ -5,6 +5,8 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
+import java.util.Arrays;
+
 public class ChannelManager {
 
     private final MessageReceivedEvent event;
@@ -24,14 +26,17 @@ public class ChannelManager {
 
         try (Jedis jedis = pool.getResource()) {
             final String result = jedis.hget(key, RedisManager.DISABLED_CHANNEL_HASH);
+            System.out.println(channelId);
+            System.out.println(Arrays.stream(result.split(SetupManager.SEPARATOR)).toList());
 
-            if (result == null) {
+            if (Arrays.stream(result.split(SetupManager.SEPARATOR)).toList().contains(channelId)) {
+                System.out.println("here!");
                 pool.close();
-                return true;
+                return false;
             }
         }
         pool.close();
-        return false;
+        return true;
     }
 
     public void setDefaultChannel(String channelId) {
