@@ -3,6 +3,7 @@ package codes.anhgelus.levelBot;
 import codes.anhgelus.levelBot.listeners.MessageSentListener;
 import codes.anhgelus.levelBot.listeners.VoiceStateListener;
 import codes.anhgelus.levelBot.manager.ConfigManager;
+import codes.anhgelus.levelBot.manager.StatusManager;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -14,6 +15,7 @@ public class LevelBot {
 
     public static void main(String[] args) throws Exception{
         final ConfigManager conf = new ConfigManager(CONF_FILE_NAME);
+        final StatusManager statusManager = new StatusManager(CONF_FILE_NAME);
 
         final String token = conf.getToken();
         final String version = conf.getVersion();
@@ -26,7 +28,7 @@ public class LevelBot {
         api.addEventListener(new MessageSentListener(api));
         api.addEventListener(new VoiceStateListener(api));
 
-        api.getPresence().setActivity(Activity.playing("Level Bot " + version + " by " + author));
+        api.getPresence().setActivity(Activity.playing(statusManager.parseStatus()));
 
     }
 

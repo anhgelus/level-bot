@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class ConfigManager {
 
-    private final String configFile;
+    protected final String configFile;
 
     public ConfigManager(String name) {
         configFile = name;
@@ -35,5 +35,7 @@ public class ConfigManager {
     public String getAuthor() { return (String) this.getConfig().get("author"); }
 
     public String getVersion() { return (String) this.getConfig().get("version"); }
+
+    public String getStatus() { return (String) this.getConfig().get("status"); }
 
 }
