@@ -35,7 +35,7 @@ public class SetupCommand {
         this.channelManager = new ChannelManager(event);
 
         try {
-            if (event.getGuild().getMemberById(event.getAuthor().getId()).getPermissions().contains(Permission.MANAGE_SERVER)) {
+            if (!event.getGuild().getMemberById(event.getAuthor().getId()).hasPermission(Permission.MANAGE_SERVER)) {
                 this.channel.sendMessage("You don't have the permission to do this, sad!").queue();
                 return;
             }
