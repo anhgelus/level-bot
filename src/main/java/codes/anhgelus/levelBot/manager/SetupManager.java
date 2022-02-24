@@ -2,6 +2,9 @@ package codes.anhgelus.levelBot.manager;
 
 import redis.clients.jedis.Jedis;
 
+import java.util.Arrays;
+import java.util.Objects;
+
 public class SetupManager {
 
     private final Jedis jedis;
@@ -39,31 +42,89 @@ public class SetupManager {
     public void setGrade(String key, String type, String[] info) {
         switch (type) {
             case RedisManager.GRADE_LEVEL_HASH: {
-                final String oldGrade = jedis.hget(key, RedisManager.GRADE_LEVEL_HASH);
+                final String oldGrade = this.jedis.hget(key, RedisManager.GRADE_LEVEL_HASH);
                 if (oldGrade == null) {
-                    jedis.hset(key, RedisManager.setupValue(info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", "", ""));
+                    this.jedis.hset(key, RedisManager.setupValue(info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", "", ""));
                     return;
                 }
-                jedis.hset(key, RedisManager.setupValue(oldGrade + info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", "", ""));
+                this.jedis.hset(key, RedisManager.setupValue(oldGrade + info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", "", ""));
             }
             case RedisManager.GRADE_LEADERBOARD_HASH: {
-                final String oldGrade = jedis.hget(key, RedisManager.GRADE_LEADERBOARD_HASH);
+                final String oldGrade = this.jedis.hget(key, RedisManager.GRADE_LEADERBOARD_HASH);
                 if (oldGrade == null) {
-                    jedis.hset(key, RedisManager.setupValue("", info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", ""));
+                    this.jedis.hset(key, RedisManager.setupValue("", info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", ""));
                     return;
                 }
-                jedis.hset(key, RedisManager.setupValue("", oldGrade + info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", ""));
+                this.jedis.hset(key, RedisManager.setupValue("", oldGrade + info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", ""));
+            }
+        }
+    }
+
+    public void removeGrade(String key, String type, String[] info) {
+        if (!Objects.equals(type, RedisManager.GRADE_LEVEL_HASH) && !Objects.equals(type, RedisManager.GRADE_LEADERBOARD_HASH)) {
+            return;
+        }
+
+        final String oldGrade = this.jedis.hget(key, type);
+
+        if (oldGrade == null) {
+            return;
+        }
+
+        final String[] oldGrades = oldGrade.split(",");
+        StringBuilder newGrade = new StringBuilder();
+        for (String i : oldGrades) {
+            if (!Arrays.equals(i.split(RedisManager.SPLIT), info)) {
+                newGrade.append(i + SEPARATOR);
+            }
+        }
+
+        if (newGrade.toString().length() == 0) {
+            System.out.println("Error when removing the grade");
+            return;
+        }
+
+        switch (type) {
+            case RedisManager.GRADE_LEVEL_HASH: {
+                this.jedis.hset(key, RedisManager.setupValue(newGrade.toString(), "", "", ""));
+            }
+            case RedisManager.GRADE_LEADERBOARD_HASH: {
+                this.jedis.hset(key, RedisManager.setupValue("", oldGrade + info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", ""));
             }
         }
     }
 
     public void setChannel(String key, String info) {
-        final String oldChannel = jedis.hget(key, RedisManager.DISABLED_CHANNEL_HASH);
+        final String oldChannel = this.jedis.hget(key, RedisManager.DISABLED_CHANNEL_HASH);
         if (oldChannel == null) {
-            jedis.hset(key, RedisManager.setupValue("", "", info + SEPARATOR, ""));
+            this.jedis.hset(key, RedisManager.setupValue("", "", info + SEPARATOR, ""));
             return;
         }
-        jedis.hset(key, RedisManager.setupValue("", "", oldChannel + info + SEPARATOR, ""));
+        this.jedis.hset(key, RedisManager.setupValue("", "", oldChannel + info + SEPARATOR, ""));
+    }
+
+    public void removeChannel(String key, String info) {
+        final String oldChannel = this.jedis.hget(key, RedisManager.DISABLED_CHANNEL_HASH);
+
+        if (oldChannel == null) {
+            return;
+        }
+
+        final String[] oldChannels = oldChannel.split(SEPARATOR);
+
+        StringBuilder newChannel = new StringBuilder();
+        for (String i : oldChannels) {
+            if (!i.equals(info)) {
+                newChannel.append(i + SEPARATOR);
+            }
+        }
+
+        if (newChannel.toString().length() == 0) {
+            System.out.println("Error when removing the channel");
+            return;
+        }
+
+        this.jedis.hset(key, RedisManager.setupValue("", "", newChannel.toString(), ""));
     }
 
 

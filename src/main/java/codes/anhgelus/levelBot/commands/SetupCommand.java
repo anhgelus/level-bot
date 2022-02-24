@@ -113,26 +113,52 @@ public class SetupCommand {
 
         try (Jedis jedis = pool.getResource()) {
             final SetupManager sm = new SetupManager(jedis);
-            sm.setGrade(key, type, new String[]{String.valueOf(lvl), String.valueOf(gradeId)});
+
+            switch (this.args[2]) {
+                case "add": {
+                    sm.setGrade(key, type, new String[]{String.valueOf(lvl), String.valueOf(gradeId)});
+                    this.channel.sendMessage("Role " + this.event.getGuild().getRoleById(gradeId).getName() +
+                            "has been added to the level " + lvl).queue();
+                }
+                case "remove": {
+                    sm.removeGrade(key, type, new String[]{String.valueOf(lvl), String.valueOf(gradeId)});
+                    this.channel.sendMessage("Role " + this.event.getGuild().getRoleById(gradeId).getName() +
+                            "has been removed to the level " + lvl).queue();
+                }
+            }
         }
         pool.close();
-
-        this.channel.sendMessage("Role " + this.event.getGuild().getRoleById(gradeId).getName() + " has been added" +
-                " to the level " + lvl).queue();
     }
 
     private void disableChannel() {
-        try {
-            final String channelId = this.args[3];
-            this.event.getGuild().getGuildChannelById(channelId);
+        final String channelId = this.args[3];
+        this.event.getGuild().getGuildChannelById(channelId);
+        final JedisPool pool = this.redisManager.getPool();
 
-            final SetupManager sm = new SetupManager(this.redisManager.getPool().getResource());
-            sm.setChannel(RedisManager.setupKey(this.event.getGuild().getId()), channelId);
+        try (Jedis jedis = pool.getResource()) {
+            final SetupManager sm = new SetupManager(jedis);
+            switch (this.args[2]) {
+                case "add": {
+                    try {
+                        sm.setChannel(RedisManager.setupKey(this.event.getGuild().getId()), channelId);
 
-            this.channel.sendMessage("The channel <#" + channelId + "> has been disabled!").queue();
-        } catch (Exception e) {
-            this.channel.sendMessage(e.getMessage()).queue();
+                        this.channel.sendMessage("The channel <#" + channelId + "> has been enabled!").queue();
+                    } catch (Exception e) {
+                        this.channel.sendMessage(e.getMessage()).queue();
+                    }
+                }
+                case "remove": {
+                    try {
+                        sm.removeChannel(RedisManager.setupKey(this.event.getGuild().getId()), channelId);
+
+                        this.channel.sendMessage("The channel <#" + channelId + "> has been disabled!").queue();
+                    } catch (Exception e) {
+                        this.channel.sendMessage(e.getMessage()).queue();
+                    }
+                }
+            }
         }
+        pool.close();
     }
 
     private void defaultChannel() {
@@ -182,18 +208,11 @@ public class SetupCommand {
                 .setTitle("Actual Config")
                 .setColor(Color.RED);
 
-        if (defaultChannel != null) {
-            config.addField("Default Channel", "<#" + defaultChannel + ">", false);
-        }
-        if (disabledChannel != null) {
-            config.addField("Disabled Channel", SetupManager.parseChannel(disabledChannel), false);
-        }
-        if (gradeLevel != null) {
-            config.addField("Grade Level", SetupManager.parseGradeLevel(gradeLevel), false);
-        }
-        if (gradeLeaderboard != null) {
-            config.addField("Grade Leaderboard", SetupManager.parseGradeLevel(gradeLeaderboard), false);
-        }
+        if (defaultChannel != null) config.addField("Default Channel", "<#" + defaultChannel + ">", false);
+        if (disabledChannel != null) config.addField("Disabled Channel", SetupManager.parseChannel(disabledChannel), false);
+        if (gradeLevel != null) config.addField("Grade Level", SetupManager.parseGradeLevel(gradeLevel), false);
+        if (gradeLeaderboard != null) config.addField("Grade Leaderboard", SetupManager.parseGradeLevel(gradeLeaderboard), false);
+
         this.channel.sendMessageEmbeds(config.build()).queue();
     }
 }
