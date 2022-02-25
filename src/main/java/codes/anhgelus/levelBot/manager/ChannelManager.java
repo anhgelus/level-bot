@@ -33,7 +33,6 @@ public class ChannelManager {
             }
 
             if (Arrays.stream(result.split(SetupManager.SEPARATOR)).toList().contains(channelId)) {
-                System.out.println("here!");
                 pool.close();
                 return false;
             }

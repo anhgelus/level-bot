@@ -68,7 +68,7 @@ public class MessageSentListener extends ListenerAdapter {
             }
             channel.sendMessage("You need " + xp + " xp points to have access to the level " + args[1] + "!").queue();
         } else if (content.startsWith(prefix + "setup")) {
-            final SetupCommand setupCommand = new SetupCommand(event);
+            new SetupCommand(event);
         } else if (content.startsWith(prefix + "leaderboard")) {
             channel.sendMessage("The leaderboard is currently in development. Check the github for more information.").queue();
         } else {

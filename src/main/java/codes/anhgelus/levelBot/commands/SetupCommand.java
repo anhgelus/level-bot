@@ -114,16 +114,19 @@ public class SetupCommand {
         try (Jedis jedis = pool.getResource()) {
             final SetupManager sm = new SetupManager(jedis);
 
-            switch (this.args[2]) {
-                case "add": {
+            final String typeOfUsage = this.args[2];
+            System.out.println(typeOfUsage);
+
+            switch (typeOfUsage) {
+                case "add" -> {
                     sm.setGrade(key, type, new String[]{String.valueOf(lvl), String.valueOf(gradeId)});
                     this.channel.sendMessage("Role " + this.event.getGuild().getRoleById(gradeId).getName() +
-                            "has been added to the level " + lvl).queue();
+                            " has been added to the level " + lvl).queue();
                 }
-                case "remove": {
+                case "remove" -> {
                     sm.removeGrade(key, type, new String[]{String.valueOf(lvl), String.valueOf(gradeId)});
                     this.channel.sendMessage("Role " + this.event.getGuild().getRoleById(gradeId).getName() +
-                            "has been removed to the level " + lvl).queue();
+                            " has been removed to the level " + lvl).queue();
                 }
             }
         }
@@ -138,20 +141,20 @@ public class SetupCommand {
         try (Jedis jedis = pool.getResource()) {
             final SetupManager sm = new SetupManager(jedis);
             switch (this.args[2]) {
-                case "add": {
+                case "add" -> {
                     try {
                         sm.setChannel(RedisManager.setupKey(this.event.getGuild().getId()), channelId);
 
-                        this.channel.sendMessage("The channel <#" + channelId + "> has been enabled!").queue();
+                        this.channel.sendMessage("The channel <#" + channelId + "> has been disabled!").queue();
                     } catch (Exception e) {
                         this.channel.sendMessage(e.getMessage()).queue();
                     }
                 }
-                case "remove": {
+                case "remove" -> {
                     try {
                         sm.removeChannel(RedisManager.setupKey(this.event.getGuild().getId()), channelId);
 
-                        this.channel.sendMessage("The channel <#" + channelId + "> has been disabled!").queue();
+                        this.channel.sendMessage("The channel <#" + channelId + "> has been enabled!").queue();
                     } catch (Exception e) {
                         this.channel.sendMessage(e.getMessage()).queue();
                     }

@@ -3,6 +3,8 @@ package codes.anhgelus.levelBot.manager;
 import redis.clients.jedis.Jedis;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class SetupManager {
@@ -41,7 +43,7 @@ public class SetupManager {
 
     public void setGrade(String key, String type, String[] info) {
         switch (type) {
-            case RedisManager.GRADE_LEVEL_HASH: {
+            case RedisManager.GRADE_LEVEL_HASH -> {
                 final String oldGrade = this.jedis.hget(key, RedisManager.GRADE_LEVEL_HASH);
                 if (oldGrade == null) {
                     this.jedis.hset(key, RedisManager.setupValue(info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", "", ""));
@@ -49,7 +51,7 @@ public class SetupManager {
                 }
                 this.jedis.hset(key, RedisManager.setupValue(oldGrade + info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", "", ""));
             }
-            case RedisManager.GRADE_LEADERBOARD_HASH: {
+            case RedisManager.GRADE_LEADERBOARD_HASH -> {
                 final String oldGrade = this.jedis.hget(key, RedisManager.GRADE_LEADERBOARD_HASH);
                 if (oldGrade == null) {
                     this.jedis.hset(key, RedisManager.setupValue("", info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", ""));
@@ -72,25 +74,30 @@ public class SetupManager {
         }
 
         final String[] oldGrades = oldGrade.split(",");
-        StringBuilder newGrade = new StringBuilder();
+        StringBuilder newGradeB = new StringBuilder();
         for (String i : oldGrades) {
+            System.out.println(Arrays.toString(i.split(RedisManager.SPLIT)));
+            System.out.println(Arrays.toString(info));
             if (!Arrays.equals(i.split(RedisManager.SPLIT), info)) {
-                newGrade.append(i + SEPARATOR);
+                newGradeB.append(i + SEPARATOR);
             }
         }
 
-        if (newGrade.toString().length() == 0) {
-            System.out.println("Error when removing the grade");
-            return;
-        }
-
-        switch (type) {
-            case RedisManager.GRADE_LEVEL_HASH: {
-                this.jedis.hset(key, RedisManager.setupValue(newGrade.toString(), "", "", ""));
+        String newGrade = newGradeB.toString();
+        Map<String, String> map = new HashMap<>();
+        try {
+            switch (type) {
+                case RedisManager.GRADE_LEVEL_HASH -> {
+                    map.put(RedisManager.GRADE_LEVEL_HASH, newGrade);
+                    this.jedis.hset(key, map);
+                }
+                case RedisManager.GRADE_LEADERBOARD_HASH -> {
+                    map.put(RedisManager.GRADE_LEADERBOARD_HASH, newGrade);
+                    this.jedis.hset(key, map);
+                }
             }
-            case RedisManager.GRADE_LEADERBOARD_HASH: {
-                this.jedis.hset(key, RedisManager.setupValue("", oldGrade + info[0] + RedisManager.SPLIT + info[1] + SEPARATOR, "", ""));
-            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -130,6 +137,10 @@ public class SetupManager {
 
     public static String parseGradeLevel(String grades) {
         // level:roleId,
+        System.out.println(grades);
+        if (grades.length() == 0) {
+            return "No valid grade was set :(";
+        }
         final String[] grade = grades.split(",");
         StringBuilder toReturn = new StringBuilder();
         for (String i : grade) {

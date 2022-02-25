@@ -5,7 +5,20 @@ services:
     volumes:
      - ../db/redis-db:/data
     command: 'redis-server --save 60 1 --loglevel warning'
+    restart: always
+  postgre:
+    image: postgres:14.2-alpine
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: root
+      POSTGRES_USER: root
+      POSTGRES_DB: level-bot
+      PGDATA: /var/lib/postgresql/data/level-bot
+    volumes:
+      - ../db/postgre:/var/lib/postgresql/level-bot
   bot:
     build: .
+    restart: always
     links:
-      - "redis:database"
+      - "redis:redis"
+      - "postgre:postgre"
