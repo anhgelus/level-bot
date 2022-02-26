@@ -35,8 +35,10 @@ public class SetupCommand {
         this.redisManager = new RedisManager();
         this.channelManager = new ChannelManager(event);
 
+        Member member = event.getMember();
+
         try {
-            if (!event.getGuild().getMemberById(event.getAuthor().getId()).hasPermission(Permission.MANAGE_SERVER)) {
+            if (!member.hasPermission(Permission.MANAGE_SERVER)) {
                 this.channel.sendMessage("You don't have the permission to do this, sad!").queue();
                 return;
             }
