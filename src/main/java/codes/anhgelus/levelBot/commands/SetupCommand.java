@@ -6,9 +6,8 @@ import codes.anhgelus.levelBot.manager.SetupManager;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -23,7 +22,7 @@ public class SetupCommand {
 
     private final String[] args;
 
-    private final MessageChannel channel;
+    private final MessageChannelUnion channel;
 
     private final RedisManager redisManager;
     private final ChannelManager channelManager;

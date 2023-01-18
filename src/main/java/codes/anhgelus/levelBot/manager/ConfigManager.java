@@ -1,41 +1,89 @@
 package codes.anhgelus.levelBot.manager;
 
-import org.yaml.snakeyaml.Yaml;
+import org.jetbrains.annotations.NotNull;
+import org.tomlj.Toml;
+import org.tomlj.TomlParseResult;
 
-import java.io.InputStream;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class ConfigManager {
 
     protected final String configFile;
+    public final Path configPath;
+    public final TomlParseResult config;
 
-    public ConfigManager(String name) {
+    public ConfigManager(@NotNull String name) throws IOException {
         configFile = name;
+        configPath = Path.of("./"+configFile);
+        generate();
+        config = Toml.parse(configPath);
+        config.errors().forEach(error -> System.err.println(error.toString()));
     }
 
-    protected Map<String, Object> getConfig() {
-        Yaml yaml = new Yaml();
-
-        final InputStream is = this.getClass().getClassLoader().getResourceAsStream(this.configFile);
-        return yaml.load(is);
+    private void generate() {
+        var is = this.getClass().getClassLoader().getResourceAsStream(this.configFile);
+        try {
+            if (!configPath.toFile().createNewFile()) {
+                assert is != null;
+                Files.write(configPath, is.readAllBytes());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String getToken() {
-        return (String) this.getConfig().get("token");
+        return config.getString("token");
     }
 
-    public String getDatabaseIp() {
-        return (String) this.getConfig().get("database-ip");
+    public String getVersion() {
+        return config.getString("information.version");
+    }
+
+    public String getAuthor() {
+        return config.getString("information.author");
     }
 
     public String getPrefix() {
-        return (String) this.getConfig().get("prefix");
+        return config.getString("information.prefix");
     }
 
-    public String getAuthor() { return (String) this.getConfig().get("author"); }
+    public String getStatus() {
+        return config.getString("information.status");
+    }
 
-    public String getVersion() { return (String) this.getConfig().get("version"); }
+    public String getSqlType() {
+        return config.getString("database.sql.type");
+    }
 
-    public String getStatus() { return (String) this.getConfig().get("status"); }
+    public String getSqlHost() {
+        return config.getString("database.sql.host");
+    }
+
+    public long getSqlPort() {
+        return config.getLong("database.sql.port");
+    }
+
+    public String getSqlDatabase() {
+        return config.getString("database.sql.database");
+    }
+
+    public String getSqlUser() {
+        return config.getString("database.sql.user");
+    }
+
+    public String getSqlPassword() {
+        return config.getString("database.sql.password");
+    }
+
+    public String getRedisHost() {
+        return config.getString("database.redis.host");
+    }
+
+    public long getRedisPort() {
+        return config.getLong("database.redis.port");
+    }
 
 }

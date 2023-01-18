@@ -5,12 +5,11 @@ import codes.anhgelus.levelBot.commands.SetupCommand;
 import codes.anhgelus.levelBot.manager.*;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.awt.*;
+import java.io.IOException;
 
 public class MessageSentListener extends ListenerAdapter {
 
@@ -24,13 +23,18 @@ public class MessageSentListener extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent event) {
         if (event.getAuthor().isBot()) return;
 
-        final ConfigManager conf = new ConfigManager(LevelBot.CONF_FILE_NAME);
-        final String prefix = conf.getPrefix();
+        final ConfigManager conf;
+        try {
+            conf = new ConfigManager(LevelBot.CONF_FILE_NAME);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        final var prefix = conf.getPrefix();
 
-        final ChannelManager channelManager = new ChannelManager(event);
+        final var channelManager = new ChannelManager(event);
 
-        final Message message = event.getMessage();
-        final String content = message.getContentRaw();
+        final var message = event.getMessage();
+        final var content = message.getContentRaw();
 
         if (content.startsWith(prefix)) {
             forBotMessage(event, prefix);
@@ -39,16 +43,16 @@ public class MessageSentListener extends ListenerAdapter {
 
         if (!channelManager.checkValidChannel(event.getChannel().getId())) return;
 
-        final ExperienceManager experienceManager = new ExperienceManager(event.getGuild().getId(), event.getAuthor().getId());
+        final var experienceManager = new ExperienceManager(event.getGuild().getId(), event.getAuthor().getId());
 
         int xp = ExperienceManager.experienceCalculator(content);
         experienceManager.addExperience(xp, event, this.api);
     }
 
     private void forBotMessage(MessageReceivedEvent event, String prefix) {
-        final Message message = event.getMessage();
-        final MessageChannel channel = event.getChannel();
-        final String content = message.getContentRaw();
+        final var message = event.getMessage();
+        final var channel = event.getChannel();
+        final var content = message.getContentRaw();
 
         final LevelManager levelManager = new LevelManager(event.getGuild().getId(), event.getAuthor().getId());
         final ExperienceManager experienceManager = new ExperienceManager(event.getGuild().getId(), event.getAuthor().getId());

@@ -1,6 +1,0 @@
-token: "token_here"
-database-ip: "redis"
-prefix: "!"
-author: "Anhgelus Morhtuuzh"
-version: "0.5.2"
-status: "Level-Bot {version} by {author}"

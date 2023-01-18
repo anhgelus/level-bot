@@ -2,17 +2,11 @@ package codes.anhgelus.levelBot.manager;
 
 import java.util.Map;
 
-public class StatusManager extends ConfigManager {
-
-    public StatusManager(String name) {
-        super(name);
-    }
-
-    public String parseStatus() {
-        final Map<String, Object> conf = getConfig();
-        final String status = getStatus();
-        final String author = getAuthor();
-        final String version = getVersion();
+public class StatusManager {
+    public static String parseStatus(ConfigManager configManager) {
+        final String status = configManager.getStatus();
+        final String author = configManager.getAuthor();
+        final String version = configManager.getVersion();
 
         return status.replace("{author}", author).replace("{version}", version);
     }
