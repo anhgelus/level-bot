@@ -2,8 +2,6 @@ package codes.anhgelus.levelBot.listeners;
 
 import codes.anhgelus.levelBot.manager.VoiceManager;
 import net.dv8tion.jda.api.JDA;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceJoinEvent;
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.sql.Timestamp;
