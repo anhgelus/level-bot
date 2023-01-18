@@ -11,25 +11,22 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 
 public class LevelBot {
 
-    public final static String CONF_FILE_NAME = "config.yml";
+    public final static String CONF_FILE_NAME = "config.toml";
 
     public static void main(String[] args) throws Exception{
-        final ConfigManager conf = new ConfigManager(CONF_FILE_NAME);
-        final StatusManager statusManager = new StatusManager(CONF_FILE_NAME);
+        final var conf = new ConfigManager(CONF_FILE_NAME);
 
-        final String token = conf.getToken();
-        final String version = conf.getVersion();
-        final String author = conf.getAuthor();
+        final var token = conf.getToken();
 
-        JDABuilder builder = JDABuilder.createDefault(token);
-        builder.enableIntents(GatewayIntent.GUILD_MEMBERS);
+        final var api = JDABuilder.createDefault(token)
+                .enableIntents(GatewayIntent.GUILD_MEMBERS)
+                .build();
 
-        JDA api = builder.build().awaitReady();
+        api.awaitReady();
         api.addEventListener(new MessageSentListener(api));
         api.addEventListener(new VoiceStateListener(api));
 
-        api.getPresence().setActivity(Activity.playing(statusManager.parseStatus()));
-
+        api.getPresence().setActivity(Activity.playing(StatusManager.parseStatus(conf)));
     }
 
 }

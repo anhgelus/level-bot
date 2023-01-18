@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 import java.awt.*;
+import java.io.IOException;
 
 public class MessageSentListener extends ListenerAdapter {
 
@@ -24,7 +25,12 @@ public class MessageSentListener extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent event) {
         if (event.getAuthor().isBot()) return;
 
-        final ConfigManager conf = new ConfigManager(LevelBot.CONF_FILE_NAME);
+        final ConfigManager conf;
+        try {
+            conf = new ConfigManager(LevelBot.CONF_FILE_NAME);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         final String prefix = conf.getPrefix();
 
         final ChannelManager channelManager = new ChannelManager(event);

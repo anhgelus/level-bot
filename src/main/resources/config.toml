@@ -1,0 +1,20 @@
+token = "token_here"
+
+[information]
+prefix = "!"
+author = "Anhgelus Morhtuuzh"
+version = "0.6.0"
+status = "Level-Bot {version} by {author}"
+
+[database]
+[database.sql]
+type = "postgres"
+host = "localhost"
+port = 3306
+database = "levelbot"
+username = "root"
+password = "password"
+
+[database.redis]
+host = "localhost"
+port = 6379
